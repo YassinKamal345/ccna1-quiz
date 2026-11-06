@@ -10,6 +10,8 @@
   };
   const PASS = 70;
   const LETTERS = ["A", "B", "C", "D"];
+  const EXAM = { size: 60, minutes: 60 };
+  const REPO = "https://github.com/YassinKamal345/ccna1-quiz";
 
   // ---------- storage (safe) ----------
   const store = {
@@ -37,24 +39,31 @@
     for (const c of kids.flat()) if (c != null) n.append(c);
     return n;
   }
+  const mmss = s => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
+  const modLabel = q => q.gen ? "Subnetting · pregunta generada" : `Módulo ${q.m} · ${MODULES[q.m]}`;
+
+  function issueUrl(q) {
+    const body = `**Pregunta (módulo ${q.m}):**\n${q.q}\n\n**Opciones:**\n${q.o.map((o, i) => `- ${o}${i === 0 ? "  ← marcada como correcta" : ""}`).join("\n")}\n\n**¿Qué está mal?**\n`;
+    return `${REPO}/issues/new?title=${encodeURIComponent("Error en pregunta: " + q.q.slice(0, 60))}&body=${encodeURIComponent(body)}`;
+  }
+  const reportLink = q => q.gen ? null : el("a", { class: "report", href: issueUrl(q), target: "_blank", rel: "noopener", text: "⚑ Reportar error" });
 
   // ---------- state ----------
   let selected = new Set(store.get(K.mods, Object.keys(MODULES).map(Number)));
-  let state = null; // {items:[{q, opts:[{text,correct}]}], answers:[], idx, practice, finished}
+  let state = null;   // {items, answers, flags:Set, idx, practice, label, startedAt, endsAt}
   let lastResult = null;
+  let timer = null;
 
-  // ---------- views ----------
   function show(view) {
     for (const v of ["home", "quiz", "results"]) $(v).hidden = v !== view;
     window.scrollTo({ top: 0 });
   }
 
+  // ---------- home ----------
   function renderHome() {
-    // chips
     const counts = {};
     BANK.forEach(q => counts[q.m] = (counts[q.m] || 0) + 1);
-    const chips = $("moduleChips");
-    chips.replaceChildren(...Object.entries(MODULES).map(([n, name]) => {
+    $("moduleChips").replaceChildren(...Object.entries(MODULES).map(([n, name]) => {
       n = Number(n);
       return el("button", {
         class: "chip" + (selected.has(n) ? " on" : ""), title: name,
@@ -90,34 +99,47 @@
   const stat = (v, l) => el("div", { class: "stat" }, el("div", { class: "v", text: v }), el("div", { class: "l", text: l }));
   const saveMods = () => store.set(K.mods, [...selected]);
 
+  // pick `size` questions spreading them evenly across modules
+  function pickBalanced(pool, size) {
+    const byMod = {};
+    shuffle(pool).forEach(q => (byMod[q.m] = byMod[q.m] || []).push(q));
+    const mods = shuffle(Object.keys(byMod));
+    const picked = [];
+    const target = Math.min(size, pool.length);
+    while (picked.length < target) {
+      for (const m of mods) if (byMod[m].length && picked.length < target) picked.push(byMod[m].pop());
+    }
+    return shuffle(picked);
+  }
+
   // ---------- quiz ----------
-  function startQuiz(questions, label) {
-    const practice = $("practiceMode").checked;
+  function startQuiz(questions, label, opts = {}) {
+    stopTimer();
+    const practice = opts.exam ? false : $("practiceMode").checked;
     state = {
-      label, practice, idx: 0, finished: false, warned: false,
+      label, practice, exam: !!opts.exam, idx: 0, warned: false, quitArmed: false,
+      startedAt: Date.now(), endsAt: opts.minutes ? Date.now() + opts.minutes * 60000 : null,
       items: questions.map(q => ({ q, opts: shuffle(q.o.map((text, i) => ({ text, correct: i === 0 }))) })),
-      answers: new Array(questions.length).fill(null)
+      answers: new Array(questions.length).fill(null),
+      flags: new Set()
     };
-    $("modeTag").textContent = practice ? "Modo práctica" : "Modo examen";
+    $("modeTag").textContent = state.exam ? "Simulacro" : practice ? "Modo práctica" : "Modo examen";
+    $("timer").hidden = !state.endsAt;
+    if (state.endsAt) { tick(); timer = setInterval(tick, 1000); }
+    resetQuit();
     show("quiz");
     renderQuestion();
   }
 
-  function startRandom() {
-    const size = Number($("quizSize").value);
-    const pool = BANK.filter(q => selected.has(q.m));
-    // balance: shuffle pool, prefer spreading across modules
-    const byMod = {};
-    shuffle(pool).forEach(q => (byMod[q.m] = byMod[q.m] || []).push(q));
-    const picked = [];
-    const mods = shuffle(Object.keys(byMod));
-    while (picked.length < Math.min(size, pool.length)) {
-      for (const m of mods) {
-        if (byMod[m].length && picked.length < size) picked.push(byMod[m].pop());
-      }
-    }
-    startQuiz(shuffle(picked), "Aleatoria");
+  function tick() {
+    if (!state || !state.endsAt) return;
+    const left = Math.max(0, (state.endsAt - Date.now()) / 1000);
+    const t = $("timer");
+    t.textContent = "⏱ " + mmss(left);
+    t.classList.toggle("low", left <= 300);
+    if (left <= 0) { stopTimer(); finish(true); }
   }
+  function stopTimer() { if (timer) { clearInterval(timer); timer = null; } }
 
   function renderQuestion() {
     const { items, idx, answers, practice } = state;
@@ -127,7 +149,7 @@
 
     $("qCounter").textContent = `Pregunta ${idx + 1} de ${items.length}`;
     $("progressBar").style.width = `${(answers.filter(a => a !== null).length / items.length) * 100}%`;
-    $("qModule").textContent = `Módulo ${it.q.m} · ${MODULES[it.q.m]}`;
+    $("qModule").textContent = modLabel(it.q);
     $("qText").textContent = it.q.q;
     $("qCode").hidden = !it.q.c;
     $("qCode").textContent = it.q.c || "";
@@ -148,6 +170,11 @@
       fb.replaceChildren(el("b", { text: ok ? "✔ Correcto. " : "✘ Incorrecto. " }), it.q.e);
     } else fb.hidden = true;
 
+    const flagged = state.flags.has(idx);
+    $("flagBtn").classList.toggle("on", flagged);
+    $("flagBtn").textContent = flagged ? "⚑ Marcada para revisar" : "⚐ Marcar para revisar";
+    $("qReport").replaceChildren(...[reportLink(it.q)].filter(Boolean));
+
     $("prevBtn").disabled = idx === 0;
     $("nextBtn").textContent = idx === items.length - 1 ? "Finalizar" : "Siguiente";
     $("finishWarn").hidden = true;
@@ -156,14 +183,17 @@
   }
 
   function renderDots() {
-    const { items, idx, answers, practice } = state;
+    const { items, idx, answers, practice, flags } = state;
     $("dots").replaceChildren(...items.map((it, i) => {
       let cls = "dot";
       if (answers[i] !== null) cls += practice ? (it.opts[answers[i]].correct ? " ok" : " bad") : " answered";
+      if (flags.has(i)) cls += " flag";
       if (i === idx) cls += " current";
-      return el("button", { class: cls, text: i + 1, title: `Pregunta ${i + 1}`, onclick: () => { state.idx = i; renderQuestion(); } });
+      return el("button", { class: cls, text: i + 1, title: `Pregunta ${i + 1}${flags.has(i) ? " (marcada)" : ""}`, onclick: () => go(i) });
     }));
   }
+
+  function go(i) { state.idx = i; renderQuestion(); }
 
   function choose(i) {
     if (state.practice && state.answers[state.idx] !== null) return;
@@ -172,19 +202,40 @@
   }
 
   function next() {
-    if (state.idx < state.items.length - 1) { state.idx++; renderQuestion(); return; }
+    if (state.idx < state.items.length - 1) { go(state.idx + 1); return; }
     const missing = state.answers.filter(a => a === null).length;
-    if (missing && !state.warned) {
-      state.warned = true;
-      $("finishWarn").textContent = `Te quedan ${missing} pregunta(s) sin responder. Pulsa "Finalizar" otra vez para corregir igualmente.`;
+    const flagged = state.flags.size;
+    if ((missing || flagged) && !state.warned) {
+      const parts = [];
+      if (missing) parts.push(`${missing} sin responder`);
+      if (flagged) parts.push(`${flagged} marcada(s) para revisar`);
+      $("finishWarn").textContent = `Tienes ${parts.join(" y ")}. Pulsa "Finalizar" otra vez para corregir igualmente.`;
       $("finishWarn").hidden = false;
+      state.warned = true;
       return;
     }
-    finish();
+    finish(false);
+  }
+
+  function resetQuit() { if (state) state.quitArmed = false; $("quitBtn").textContent = "← Salir"; $("quitBtn").classList.remove("danger"); }
+  function quit() {
+    const answered = state.answers.some(a => a !== null);
+    if (answered && !state.quitArmed) {
+      state.quitArmed = true;
+      $("quitBtn").textContent = "¿Salir? Perderás las respuestas · pulsa otra vez";
+      $("quitBtn").classList.add("danger");
+      setTimeout(() => { if (state && state.quitArmed) resetQuit(); }, 4000);
+      return;
+    }
+    stopTimer();
+    state = null;
+    renderHome();
+    show("home");
   }
 
   // ---------- results ----------
-  function finish() {
+  function finish(timeUp) {
+    stopTimer();
     const { items, answers } = state;
     const rows = items.map((it, i) => {
       const a = answers[i];
@@ -192,33 +243,31 @@
     });
     const correct = rows.filter(r => r.ok).length;
     const pct = Math.round((correct / rows.length) * 100);
+    const secs = Math.round((Date.now() - state.startedAt) / 1000);
 
-    // persist wrong set
     const wrong = new Set(store.get(K.wrong, []));
-    rows.forEach(r => r.ok ? wrong.delete(r.it.q.id) : wrong.add(r.it.q.id));
+    rows.forEach(r => { if (!r.it.q.gen) r.ok ? wrong.delete(r.it.q.id) : wrong.add(r.it.q.id); });
     store.set(K.wrong, [...wrong]);
     const hist = store.get(K.hist, []);
     hist.push({ date: Date.now(), correct, total: rows.length, pct, label: state.label });
     store.set(K.hist, hist.slice(-50));
 
-    lastResult = { rows, correct, pct };
-    state.finished = true;
+    lastResult = { rows, correct, pct, secs, timeUp, label: state.label };
     renderResults("all");
     show("results");
   }
 
   function renderResults(filter) {
-    const { rows, correct, pct } = lastResult;
+    const { rows, correct, pct, secs, timeUp } = lastResult;
     const pass = pct >= PASS;
     const ring = $("scoreRing");
     ring.style.setProperty("--p", pct);
     ring.style.setProperty("--c", `var(${pass ? "--ok" : "--bad"})`);
     $("scorePct").textContent = pct + "%";
-    $("scoreVerdict").textContent = pass ? "¡Aprobado!" : "Hay que repasar";
+    $("scoreVerdict").textContent = (timeUp ? "⏱ Tiempo agotado · " : "") + (pass ? "¡Aprobado!" : "Hay que repasar");
     $("scoreVerdict").className = "verdict " + (pass ? "ok" : "bad");
-    $("scoreDetail").textContent = `${correct} de ${rows.length} correctas · Nota: ${(pct / 10).toFixed(1)} / 10 · Aprobado a partir del ${PASS}%`;
+    $("scoreDetail").textContent = `${correct} de ${rows.length} correctas · Nota: ${(pct / 10).toFixed(1)} / 10 · Tiempo: ${mmss(secs)} · Aprobado a partir del ${PASS}%`;
 
-    // by module
     const mods = {};
     rows.forEach(r => { const m = r.it.q.m; mods[m] = mods[m] || { ok: 0, t: 0 }; mods[m].t++; if (r.ok) mods[m].ok++; });
     $("byModule").replaceChildren(...Object.keys(mods).map(Number).sort((a, b) => a - b).map(m => {
@@ -245,7 +294,7 @@
       el("div", { class: "qh" },
         el("span", { class: "icon " + (ok ? "ok" : "bad"), text: ok ? "✔" : "✘" }),
         el("div", {}, el("div", { class: "qt", text: `${n}. ${it.q.q}` }),
-          el("div", { class: "muted small", text: `Módulo ${it.q.m} · ${MODULES[it.q.m]}` }))),
+          el("div", { class: "muted small" }, modLabel(it.q), it.q.gen ? null : " · ", reportLink(it.q)))),
       it.q.c ? el("pre", { text: it.q.c }) : null,
       el("div", { class: "ans" },
         el("div", { class: "you " + (ok ? "good" : "bad"), text: "Tu respuesta: " + (a === null ? "(sin responder)" : fmt(a)) }),
@@ -253,25 +302,37 @@
       el("div", { class: "why" }, el("b", { text: "Por qué: " }), it.q.e));
   }
 
+  // ---------- starters ----------
+  const size = () => Number($("quizSize").value);
+  function startRandom() { startQuiz(pickBalanced(BANK.filter(q => selected.has(q.m)), size()), "Aleatoria"); }
+  function startSubnet() { startQuiz(window.SubnetGen.generate(size()).sort(() => Math.random() - .5), "Subnetting"); }
+  function startExam() { startQuiz(pickBalanced(BANK, EXAM.size), "Simulacro", { exam: true, minutes: EXAM.minutes }); }
+
   // ---------- events ----------
   $("selAll").onclick = () => { selected = new Set(Object.keys(MODULES).map(Number)); saveMods(); renderHome(); };
   $("selNone").onclick = () => { selected.clear(); saveMods(); renderHome(); };
   $("practiceMode").onchange = e => store.set(K.practice, e.target.checked);
   $("quizSize").onchange = e => store.set(K.size, Number(e.target.value));
   $("startBtn").onclick = startRandom;
+  $("subnetBtn").onclick = startSubnet;
+  $("examBtn").onclick = startExam;
   $("wrongBtn").onclick = () => {
     const qs = store.get(K.wrong, []).map(id => byId.get(id)).filter(Boolean);
-    if (qs.length) startQuiz(shuffle(qs).slice(0, Number($("quizSize").value)), "Falladas");
+    if (qs.length) startQuiz(shuffle(qs).slice(0, size()), "Falladas");
   };
   $("clearHist").onclick = e => {
     const b = e.currentTarget;
     if (b.dataset.armed) { store.set(K.hist, []); store.set(K.wrong, []); delete b.dataset.armed; b.textContent = "Borrar progreso"; renderHome(); }
     else { b.dataset.armed = "1"; b.textContent = "¿Seguro? Pulsa otra vez"; setTimeout(() => { delete b.dataset.armed; b.textContent = "Borrar progreso"; }, 3000); }
   };
-  $("prevBtn").onclick = () => { if (state.idx > 0) { state.idx--; renderQuestion(); } };
+  $("prevBtn").onclick = () => { if (state.idx > 0) go(state.idx - 1); };
   $("nextBtn").onclick = next;
-  $("quitBtn").onclick = () => { state = null; renderHome(); show("home"); };
-  $("againBtn").onclick = startRandom;
+  $("flagBtn").onclick = () => { const i = state.idx; state.flags.has(i) ? state.flags.delete(i) : state.flags.add(i); renderQuestion(); };
+  $("quitBtn").onclick = quit;
+  $("againBtn").onclick = () => {
+    const l = lastResult && lastResult.label;
+    if (l === "Subnetting") startSubnet(); else if (l === "Simulacro") startExam(); else startRandom();
+  };
   $("homeBtn").onclick = () => { renderHome(); show("home"); };
   $("retryWrongBtn").onclick = () => startQuiz(shuffle(lastResult.rows.filter(r => !r.ok).map(r => r.it.q)), "Repetición");
   document.querySelectorAll(".seg-btn").forEach(b => b.onclick = () => renderResults(b.dataset.filter));
@@ -283,7 +344,8 @@
     const map = { "1": 0, "2": 1, "3": 2, "4": 3, a: 0, b: 1, c: 2, d: 3 };
     if (k in map && map[k] < state.items[state.idx].opts.length) { choose(map[k]); e.preventDefault(); }
     else if (k === "arrowright" || k === "enter") { next(); e.preventDefault(); }
-    else if (k === "arrowleft" && state.idx > 0) { state.idx--; renderQuestion(); e.preventDefault(); }
+    else if (k === "arrowleft" && state.idx > 0) { go(state.idx - 1); e.preventDefault(); }
+    else if (k === "m") { $("flagBtn").click(); e.preventDefault(); }
   });
 
   renderHome();

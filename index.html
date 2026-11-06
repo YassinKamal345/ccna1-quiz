@@ -54,6 +54,17 @@
       <button class="btn" id="wrongBtn">Repasar falladas</button>
     </div>
 
+    <div class="modes">
+      <button class="mode-card" id="subnetBtn">
+        <span class="mode-ico" aria-hidden="true">∞</span>
+        <span><b>Subnetting infinito</b><small>Ejercicios generados al azar: red, broadcast, rango, hosts y máscaras. Nunca se repiten.</small></span>
+      </button>
+      <button class="mode-card" id="examBtn">
+        <span class="mode-ico" aria-hidden="true">⏱</span>
+        <span><b>Simulacro de examen final</b><small>60 preguntas de todos los módulos en 60 minutos, sin ver las respuestas hasta el final.</small></span>
+      </button>
+    </div>
+
     <div class="card" id="historyCard" hidden>
       <div class="row-between">
         <h2>Historial</h2>
@@ -69,7 +80,7 @@
     <div class="quiz-top">
       <button class="link" id="quitBtn">← Salir</button>
       <span id="qCounter" class="muted"></span>
-      <span id="modeTag" class="tag"></span>
+      <span class="top-right"><span id="timer" class="timer" hidden></span><span id="modeTag" class="tag"></span></span>
     </div>
     <div class="progress"><div id="progressBar"></div></div>
 
@@ -79,6 +90,10 @@
       <pre id="qCode" hidden></pre>
       <div id="qOptions" class="options"></div>
       <div id="feedback" class="feedback" hidden></div>
+      <div class="qfoot">
+        <button class="link flag-btn" id="flagBtn" title="Atajo: M">⚐ Marcar para revisar</button>
+        <span id="qReport"></span>
+      </div>
     </div>
 
     <div class="nav">
@@ -87,7 +102,7 @@
     </div>
     <div id="dots" class="dots"></div>
     <p id="finishWarn" class="warn" hidden></p>
-    <p class="muted small center">Atajos: 1-4 / A-D para responder · ← → para moverte · Enter para continuar</p>
+    <p class="muted small center">Atajos: 1-4 / A-D para responder · ← → para moverte · Enter para continuar · M para marcar</p>
   </section>
 
   <!-- RESULTS -->
@@ -148,6 +163,7 @@
 </aside>
 
 <script src="questions.js"></script>
+<script src="subnet.js"></script>
 <script src="app.js"></script>
 <script src="calc.js"></script>
 </body>

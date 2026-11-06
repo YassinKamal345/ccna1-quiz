@@ -143,3 +143,34 @@ pre{background:var(--code);color:var(--code-text);padding:14px;border-radius:10p
 @media (max-width:1179px){ .calc{top:auto;bottom:calc(72px + env(safe-area-inset-bottom,0px));transform:none} }
 @media (max-width:520px){ .calc{left:16px;right:16px;width:auto} .calc-keys button{padding:12px 0} }
 .wrap{padding-bottom:96px}
+
+/* ---- question box sizing: stable height, roomier layout ---- */
+.qcard{display:flex;flex-direction:column;min-height:min(560px,calc(100dvh - 260px));padding:clamp(18px,3vw,28px);margin-top:12px}
+.qcard h3{font-size:clamp(1.05rem,1.6vw,1.2rem);line-height:1.5;margin:.7rem 0 1.1rem;overflow-wrap:anywhere}
+.qcard pre{font-size:clamp(11.5px,1.4vw,13px)}
+.qcard .options{gap:10px}
+.qcard .opt{align-items:center;min-height:52px;padding:12px 16px;width:100%;overflow-wrap:anywhere}
+.qcard .opt .letter{align-self:flex-start;margin-top:1px}
+.qcard .opt span:last-child{flex:1;min-width:0}
+.qfoot{margin-top:auto;padding-top:16px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+@media (max-width:520px){ .qcard{min-height:0;padding:16px} .qcard .opt{min-height:46px;padding:10px 12px} }
+
+/* ---- new modes on home ---- */
+.modes{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px;margin:0 0 16px}
+.mode-card{display:flex;gap:14px;align-items:flex-start;text-align:left;font:inherit;color:var(--text);background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 16px;cursor:pointer;transition:.15s}
+.mode-card:hover{border-color:var(--accent)}
+.mode-card b{display:block;margin-bottom:2px}
+.mode-card small{color:var(--muted);font-size:.85rem;line-height:1.4;display:block}
+.mode-ico{flex:0 0 40px;height:40px;border-radius:10px;display:grid;place-items:center;font-size:1.3rem;font-weight:800;background:var(--accent-soft);color:var(--accent)}
+
+/* ---- quiz extras: timer, flag, report, quit confirm ---- */
+.top-right{display:flex;gap:8px;align-items:center}
+.timer{font-variant-numeric:tabular-nums;font-weight:700;font-size:.9rem;padding:3px 10px;border-radius:999px;border:1px solid var(--border)}
+.timer.low{color:var(--bad);border-color:var(--bad);background:var(--bad-soft)}
+.flag-btn{color:var(--muted);padding-left:0}
+.flag-btn.on{color:var(--warn);font-weight:600}
+.report{color:var(--muted);font-size:.82rem;text-decoration:none}
+.report:hover{color:var(--accent);text-decoration:underline}
+.dot.flag{border-color:var(--warn);border-width:2px;color:var(--warn)}
+.dot.flag.answered{color:var(--warn)}
+.link.danger{color:var(--bad);font-weight:600}
