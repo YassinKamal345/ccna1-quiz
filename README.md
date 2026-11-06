@@ -22,10 +22,14 @@
 - **CLI exhibits** like in the real exam: `show ip route`, `show ip interface brief`, `ping`, `ipconfig`
 - **Random batches** of 10 / 20 / 40 / 60 questions; answer options are shuffled every time
 - **Exam mode** (graded at the end) or **practice mode** (instant feedback + explanation)
-- **Results screen**: score (% and /10), per-module breakdown, and a full review showing your answer, the correct one and **why**
+- **∞ Infinite subnetting**: randomly generated IPv4 exercises that never repeat (network, broadcast, usable range, host count, mask from prefix, mask for N hosts, valid host), each with a step-by-step explanation
+- **⏱ Final exam simulation**: 60 questions from all modules in 60 minutes, auto-graded when time runs out
+- **Results screen**: score (% and /10), time taken, per-module breakdown, and a full review showing your answer, the correct one and **why**
 - **Review wrong answers**: remembers the questions you missed until you get them right
+- **Mark for review** (`M`) to come back to a question before finishing
+- **⚑ Report an error** on any question — opens a pre-filled GitHub issue
 - **Side calculator** with live result and **binary / hex** view — handy for subnetting (`2^5-2`, `256-224`…)
-- Keyboard shortcuts (`1-4` / `A-D`, `←` `→`, `Enter`), dark mode, mobile-friendly
+- Keyboard shortcuts (`1-4` / `A-D`, `←` `→`, `Enter`, `M`), dark mode, mobile-friendly
 - 100% static: no server, no build step, works offline
 
 ## 📚 Modules covered
@@ -47,7 +51,8 @@
 ```
 index.html     → layout (home, quiz, results, calculator)
 style.css      → styles (light/dark, responsive)
-app.js         → quiz logic, scoring, review, progress (localStorage)
+app.js         → quiz logic, exam timer, scoring, review, progress (localStorage)
+subnet.js      → infinite IPv4 subnetting question generator
 calc.js        → side calculator (safe expression parser, no eval)
 questions.js   → question bank
 ```
