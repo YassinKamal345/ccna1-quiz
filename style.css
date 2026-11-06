@@ -116,3 +116,30 @@ pre{background:var(--code);color:var(--code-text);padding:14px;border-radius:10p
   .mrow{grid-template-columns:minmax(0,1fr) 70px 42px}
   .ritem .ans,.ritem .why,.ritem pre{margin-left:0}
 }
+
+/* calculator */
+.calc-fab{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:30;display:flex;align-items:center;gap:8px;font:inherit;font-weight:600;font-size:.9rem;padding:10px 16px;border-radius:999px;border:1px solid var(--accent);background:var(--card);color:var(--accent);box-shadow:0 4px 16px rgba(0,0,0,.15);cursor:pointer}
+.calc-fab.on{background:var(--accent);color:#fff}
+.calc-ico{font-weight:800;font-size:1.1rem;line-height:1}
+.calc{position:fixed;right:16px;top:50%;transform:translateY(-50%);z-index:31;width:272px;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px;box-shadow:0 10px 40px rgba(0,0,0,.18)}
+.calc-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.calc-expr{width:100%;font:15px/1.3 ui-monospace,Consolas,monospace;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);text-align:right}
+.calc-expr:focus{outline:2px solid var(--accent);outline-offset:-1px}
+.calc-res{font:700 1.7rem/1.2 ui-monospace,Consolas,monospace;text-align:right;margin:8px 2px 4px;overflow-x:auto;white-space:nowrap}
+.calc-res.err{color:var(--muted)}
+.calc-conv{display:grid;grid-template-columns:auto 1fr;gap:2px 8px;font-size:.78rem;margin-bottom:10px;align-items:center}
+.calc-conv span{color:var(--muted);font-weight:700}
+.calc-conv code{font-family:ui-monospace,Consolas,monospace;text-align:right;overflow-x:auto;white-space:nowrap}
+.calc-keys{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.calc-keys button{font:600 1rem system-ui,sans-serif;padding:10px 0;border-radius:9px;border:1px solid var(--border);background:var(--bg);color:var(--text);cursor:pointer;touch-action:manipulation}
+.calc-keys button:hover{border-color:var(--accent)}
+.calc-keys button:active{transform:scale(.96)}
+.calc-keys .op{color:var(--accent)}
+.calc-keys .fn{color:var(--muted)}
+.calc-keys .eq{background:var(--accent);border-color:var(--accent);color:#fff}
+.calc-keys .wide2{grid-column:span 2}
+/* leave room for the panel on wide screens so it never covers the quiz */
+@media (min-width:1180px){ body:has(.calc:not([hidden])) .wrap{margin-left:max(16px,calc(50vw - 410px - 160px))} }
+@media (max-width:1179px){ .calc{top:auto;bottom:calc(72px + env(safe-area-inset-bottom,0px));transform:none} }
+@media (max-width:520px){ .calc{left:16px;right:16px;width:auto} .calc-keys button{padding:12px 0} }
+.wrap{padding-bottom:96px}

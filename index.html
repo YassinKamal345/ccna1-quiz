@@ -124,7 +124,31 @@
     </div>
   </section>
 </div>
+
+<!-- CALCULATOR -->
+<button id="calcToggle" class="calc-fab" aria-controls="calc" aria-expanded="false" title="Calculadora">
+  <span class="calc-ico" aria-hidden="true">±</span> Calculadora
+</button>
+<aside id="calc" class="calc" aria-label="Calculadora" hidden>
+  <div class="calc-head">
+    <b>Calculadora</b>
+    <button class="link" id="calcClose" aria-label="Cerrar calculadora">✕</button>
+  </div>
+  <input id="calcExpr" class="calc-expr" type="text" inputmode="none" autocomplete="off" spellcheck="false" placeholder="Ej: 2^5-2" aria-label="Operación">
+  <div id="calcResult" class="calc-res" aria-live="polite">0</div>
+  <div class="calc-conv"><span>BIN</span><code id="calcBin">—</code><span>HEX</span><code id="calcHex">—</code></div>
+  <div class="calc-keys">
+    <button data-k="C" class="fn">C</button><button data-k="back" class="fn" aria-label="Borrar">⌫</button><button data-k="(" class="fn">(</button><button data-k=")" class="fn">)</button>
+    <button data-k="7">7</button><button data-k="8">8</button><button data-k="9">9</button><button data-k="÷" class="op">÷</button>
+    <button data-k="4">4</button><button data-k="5">5</button><button data-k="6">6</button><button data-k="×" class="op">×</button>
+    <button data-k="1">1</button><button data-k="2">2</button><button data-k="3">3</button><button data-k="−" class="op">−</button>
+    <button data-k="0">0</button><button data-k=".">.</button><button data-k="^" class="op" title="Potencia (2^5 = 32)">xʸ</button><button data-k="+" class="op">+</button>
+    <button data-k="2^" class="fn wide2" title="Potencia de 2">2ⁿ</button><button data-k="=" class="eq wide2">=</button>
+  </div>
+</aside>
+
 <script src="questions.js"></script>
 <script src="app.js"></script>
+<script src="calc.js"></script>
 </body>
 </html>

@@ -278,6 +278,7 @@
 
   document.addEventListener("keydown", e => {
     if ($("quiz").hidden || !state || e.ctrlKey || e.metaKey || e.altKey) return;
+    if (e.target.closest && e.target.closest("input, select, textarea, .calc")) return;
     const k = e.key.toLowerCase();
     const map = { "1": 0, "2": 1, "3": 2, "4": 3, a: 0, b: 1, c: 2, d: 3 };
     if (k in map && map[k] < state.items[state.idx].opts.length) { choose(map[k]); e.preventDefault(); }
