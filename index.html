@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CCNA 1 · ITN Practice</title>
+<meta name="description" content="Tandas de 20 preguntas tipo test para preparar el examen final de CCNA 1 (Introduction to Networks v7).">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="wrap">
+
+  <!-- HOME -->
+  <section id="home">
+    <header class="hero">
+      <div class="badge">CCNA 1 · ITN v7</div>
+      <h1>Introduction to Networks<br><span>Practice Exam</span></h1>
+      <p class="muted">Tandas de 20 preguntas aleatorias de los 17 módulos. Al final verás tu nota y cada pregunta corregida con su explicación.</p>
+    </header>
+
+    <div class="stats" id="stats"></div>
+
+    <div class="card">
+      <div class="row-between">
+        <h2>Módulos</h2>
+        <div class="mini-actions">
+          <button class="link" id="selAll">Todos</button>
+          <button class="link" id="selNone">Ninguno</button>
+        </div>
+      </div>
+      <div class="chips" id="moduleChips"></div>
+    </div>
+
+    <div class="card">
+      <h2>Opciones</h2>
+      <label class="switch">
+        <input type="checkbox" id="practiceMode">
+        <span class="slider"></span>
+        <span><b>Modo práctica</b>: ver si aciertas y la explicación nada más responder (desactivado = modo examen).</span>
+      </label>
+      <div class="sizes">
+        <span>Preguntas por tanda:</span>
+        <select id="quizSize">
+          <option value="10">10</option>
+          <option value="20" selected>20</option>
+          <option value="40">40</option>
+          <option value="60">60</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="btn primary" id="startBtn">Empezar tanda</button>
+      <button class="btn" id="wrongBtn">Repasar falladas</button>
+    </div>
+
+    <div class="card" id="historyCard" hidden>
+      <div class="row-between">
+        <h2>Historial</h2>
+        <button class="link" id="clearHist">Borrar progreso</button>
+      </div>
+      <div id="history"></div>
+    </div>
+    <p class="foot muted">Preguntas originales de estudio basadas en el temario oficial de CCNA 1 (ITN v7). No es material oficial de Cisco.</p>
+  </section>
+
+  <!-- QUIZ -->
+  <section id="quiz" hidden>
+    <div class="quiz-top">
+      <button class="link" id="quitBtn">← Salir</button>
+      <span id="qCounter" class="muted"></span>
+      <span id="modeTag" class="tag"></span>
+    </div>
+    <div class="progress"><div id="progressBar"></div></div>
+
+    <div class="card qcard">
+      <div class="tag mod" id="qModule"></div>
+      <h3 id="qText"></h3>
+      <pre id="qCode" hidden></pre>
+      <div id="qOptions" class="options"></div>
+      <div id="feedback" class="feedback" hidden></div>
+    </div>
+
+    <div class="nav">
+      <button class="btn" id="prevBtn">Anterior</button>
+      <button class="btn primary" id="nextBtn">Siguiente</button>
+    </div>
+    <div id="dots" class="dots"></div>
+    <p id="finishWarn" class="warn" hidden></p>
+    <p class="muted small center">Atajos: 1-4 / A-D para responder · ← → para moverte · Enter para continuar</p>
+  </section>
+
+  <!-- RESULTS -->
+  <section id="results" hidden>
+    <div class="card score-card">
+      <div id="scoreRing" class="ring"><span id="scorePct"></span></div>
+      <div>
+        <div id="scoreVerdict" class="verdict"></div>
+        <div id="scoreDetail" class="muted"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Por módulo</h2>
+      <div id="byModule"></div>
+    </div>
+
+    <div class="actions">
+      <button class="btn primary" id="againBtn">Nueva tanda</button>
+      <button class="btn" id="retryWrongBtn">Repetir las falladas de esta tanda</button>
+      <button class="btn" id="homeBtn">Inicio</button>
+    </div>
+
+    <div class="card">
+      <div class="row-between">
+        <h2>Revisión</h2>
+        <div class="seg">
+          <button class="seg-btn active" data-filter="all">Todas</button>
+          <button class="seg-btn" data-filter="wrong">Falladas</button>
+          <button class="seg-btn" data-filter="right">Acertadas</button>
+        </div>
+      </div>
+      <div id="review"></div>
+    </div>
+  </section>
+</div>
+<script src="questions.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
